@@ -1,46 +1,84 @@
 package com.example.memeapp
 
 import android.os.Bundle
-import android.widget.Button
+import android.view.View
 import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.activity.ComponentActivity
-import androidx.activity.viewModels
-import com.squareup.picasso.Picasso
+import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
+import com.example.memeapp.ui.MemeAdapter
+import com.example.memeapp.ui.MemeState
 import com.example.memeapp.ui.MemeViewModel
-import com.example.memeapp.ui.MemeUiState
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel by viewModels<MemeViewModel>()
+    private lateinit var viewModel: MemeViewModel
+    private lateinit var viewPager: ViewPager2
+    private lateinit var adapter: MemeAdapter
+
+    // 🔥 NUEVO
+    private lateinit var progressBar: ProgressBar
+    private lateinit var stateImage: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val imageView = findViewById<ImageView>(R.id.imageView)
-        val button = findViewById<Button>(R.id.btnMeme)
+        // ViewModel
+        viewModel = ViewModelProvider(this)[MemeViewModel::class.java]
 
-        button.setOnClickListener {
-            viewModel.getMeme()
-            updateUI(imageView)
-        }
+        // Views
+        viewPager = findViewById(R.id.viewPager)
+        progressBar = findViewById(R.id.progressBar)
+        stateImage = findViewById(R.id.stateImage)
 
-        updateUI(imageView)
-    }
+        adapter = MemeAdapter(mutableListOf())
+        viewPager.adapter = adapter
+        viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
 
-    private fun updateUI(imageView: ImageView) {
-        when (val state = viewModel.memeUiState) {
+        // 🔄 Llamada inicial
+        viewModel.getMemeList()
 
-            is MemeUiState.Success -> {
-                Picasso.get()
-                    .load(state.url)
-                    .into(imageView)
+        // 🔄 Scroll infinito
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+
+                if (position == adapter.itemCount - 1) {
+                    viewModel.getMemeList()
+                }
             }
+        })
 
-            is MemeUiState.Loading -> {
-            }
+        // 🔥 AQUÍ ESTÁ LO IMPORTANTE (ESTADOS)
+        viewModel.state.observe(this) { state ->
 
-            is MemeUiState.Error -> {
+            when (state) {
+
+                is MemeState.Loading -> {
+                    progressBar.visibility = View.VISIBLE
+                    stateImage.visibility = View.VISIBLE
+                    viewPager.visibility = View.GONE
+
+                    stateImage.setImageResource(R.drawable.loading)
+                }
+
+                is MemeState.Success -> {
+                    progressBar.visibility = View.GONE
+                    stateImage.visibility = View.GONE
+                    viewPager.visibility = View.VISIBLE
+
+                    adapter.addMemes(state.memes)
+                }
+
+                is MemeState.Error -> {
+                    progressBar.visibility = View.GONE
+                    stateImage.visibility = View.VISIBLE
+                    viewPager.visibility = View.GONE
+
+                    stateImage.setImageResource(R.drawable.error)
+                }
             }
         }
     }

@@ -1,52 +1,28 @@
 package com.example.memeapp.ui
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import androidx.lifecycle.viewModelScope
+import com.example.memeapp.model.MemeRedditResponse
 import com.example.memeapp.network.MemeApi
 import kotlinx.coroutines.launch
-import com.example.memeapp.model.MemeRedditResponse
-
-sealed interface MemeUiState {
-    object Loading : MemeUiState
-    data class Success(val url: String, val title: String) : MemeUiState
-    object Error : MemeUiState
-}
 
 class MemeViewModel : ViewModel() {
+    private val _state = MutableLiveData<MemeState>()
+    val state: LiveData<MemeState> = _state
+    private val _memeList = MutableLiveData<List<MemeRedditResponse>>()
+    val memeList: LiveData<List<MemeRedditResponse>> = _memeList
 
-    private var memeList: List<MemeRedditResponse> = emptyList()
-    private var currentIndex = 0
-    var memeUiState: MemeUiState = MemeUiState.Loading
-        private set
 
-    init {
-        getMeme()
-    }
-    fun getMeme() {
+    fun getMemeList() {
+        _state.value = MemeState.Loading
+
         viewModelScope.launch {
-
-            memeUiState = MemeUiState.Loading
-
             try {
-                if (currentIndex >= memeList.size) {
-
-                    val response = MemeApi.retrofitService.getMemes(10)
-                    memeList = response.memes.shuffled()
-                    currentIndex = 0
-                }
-
-                val meme = memeList[currentIndex]
-                currentIndex++
-
-                memeUiState = MemeUiState.Success(
-                    meme.url,
-                    meme.title
-                )
-
+                val response = MemeApi.retrofitService.getMemes(10)
+                _state.value = MemeState.Success(response.memes)
             } catch (e: Exception) {
-                memeUiState = MemeUiState.Error
+                _state.value = MemeState.Error
             }
         }
     }
-
 }
