@@ -2,7 +2,6 @@
 <resources>
 
     <style name="Theme.MemeApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Personalización opcional -->
     </style>
 
 </resources>

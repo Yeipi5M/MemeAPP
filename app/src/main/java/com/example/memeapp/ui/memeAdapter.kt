@@ -11,11 +11,9 @@ class MemeAdapter(
     private val memes: MutableList<MemeRedditResponse>
 ) : RecyclerView.Adapter<MemeAdapter.MemeViewHolder>() {
 
-    // 🔹 ViewHolder (representa UNA vista)
     class MemeViewHolder(val binding: ItemMemeBinding) :
         RecyclerView.ViewHolder(binding.root)
 
-    // 🔹 Crear vista (inflate del XML)
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MemeViewHolder {
         val binding = ItemMemeBinding.inflate(
             LayoutInflater.from(parent.context),

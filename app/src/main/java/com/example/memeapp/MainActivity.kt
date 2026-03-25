@@ -16,8 +16,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var viewModel: MemeViewModel
     private lateinit var viewPager: ViewPager2
     private lateinit var adapter: MemeAdapter
-
-    // 🔥 NUEVO
     private lateinit var progressBar: ProgressBar
     private lateinit var stateImage: ImageView
 
@@ -25,10 +23,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // ViewModel
         viewModel = ViewModelProvider(this)[MemeViewModel::class.java]
 
-        // Views
         viewPager = findViewById(R.id.viewPager)
         progressBar = findViewById(R.id.progressBar)
         stateImage = findViewById(R.id.stateImage)
@@ -37,10 +33,9 @@ class MainActivity : ComponentActivity() {
         viewPager.adapter = adapter
         viewPager.orientation = ViewPager2.ORIENTATION_VERTICAL
 
-        // 🔄 Llamada inicial
+
         viewModel.getMemeList()
 
-        // 🔄 Scroll infinito
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
@@ -51,7 +46,7 @@ class MainActivity : ComponentActivity() {
             }
         })
 
-        // 🔥 AQUÍ ESTÁ LO IMPORTANTE (ESTADOS)
+
         viewModel.state.observe(this) { state ->
 
             when (state) {
